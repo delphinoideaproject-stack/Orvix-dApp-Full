@@ -1,0 +1,146 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-bg-primary: var(--color-bg-primary-val);
+  --color-bg-secondary: var(--color-bg-secondary-val);
+  --color-accent-navy: var(--color-accent-navy-val);
+  --color-accent-cyan: var(--color-accent-cyan-val);
+  --color-border: var(--color-border-val);
+  --color-border-hover: var(--color-border-hover-val);
+  --color-hover: var(--color-hover-val);
+  --color-success: var(--color-success-val);
+  --color-warning: var(--color-warning-val);
+  --color-error: var(--color-error-val);
+  --color-text-primary: var(--color-text-primary-val);
+  --color-text-secondary: var(--color-text-secondary-val);
+  --color-text-muted: var(--color-text-muted-val);
+  
+  --animate-shimmer: shimmer 1.6s infinite linear;
+  --animate-fade-in: fadeIn 200ms ease-out;
+  --animate-slide-up: slideUp 220ms ease-out;
+  --animate-scale-in: scaleIn 180ms ease-out;
+  --animate-float: float 6s ease-in-out infinite;
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Inter", ui-monospace, SFMono-Regular, monospace;
+}
+
+:root, .light {
+  /* swap-components variables (LIGHT MODE) */
+  --color-bg-primary-val: #ffffff;
+  --color-bg-secondary-val: #f8fafc;
+  --color-accent-navy-val: #e2e8f0;
+  --color-accent-cyan-val: #0284c7;
+  --color-border-val: rgba(0,0,0,0.1);
+  --color-border-hover-val: rgba(0,0,0,0.2);
+  --color-hover-val: rgba(0,0,0,0.05);
+  --color-success-val: #10b981;
+  --color-warning-val: #f59e0b;
+  --color-error-val: #ef4444;
+  --color-text-primary-val: #0f172a;
+  --color-text-secondary-val: rgba(15,23,42,0.72);
+  --color-text-muted-val: rgba(15,23,42,0.40);
+
+  /* Orvix dApp variables (LIGHT MODE) */
+  --bg: #ffffff;
+  --bg2: #f8fafc;
+  --card: rgba(255, 255, 255, 0.8);
+  --border: rgba(0, 0, 0, 0.1);
+  --border2: rgba(2, 132, 199, 0.3);
+  --text: #0f172a;
+  --text2: #334155;
+  --text3: #64748b;
+  --text-white: #000000;
+  --accent: #0284c7;
+}
+
+.dark {
+  /* swap-components variables (DARK MODE) */
+  --color-bg-primary-val: #050b14;
+  --color-bg-secondary-val: #0b1f3a;
+  --color-accent-navy-val: #133c74;
+  --color-accent-cyan-val: #5cceff;
+  --color-border-val: rgba(92,206,255,0.12);
+  --color-border-hover-val: rgba(92,206,255,0.24);
+  --color-hover-val: rgba(92,206,255,0.08);
+  --color-success-val: #23d18b;
+  --color-warning-val: #ffc857;
+  --color-error-val: #ff5d73;
+  --color-text-primary-val: #ffffff;
+  --color-text-secondary-val: rgba(255,255,255,0.72);
+  --color-text-muted-val: rgba(255,255,255,0.40);
+
+  /* Orvix dApp variables (DARK MODE) */
+  --bg: #050b14;
+  --bg2: #08101e;
+  --card: rgba(8, 16, 30, 0.6);
+  --border: rgba(141, 163, 186, 0.2);
+  --border2: rgba(92, 206, 255, 0.2);
+  --text: #e8edf5;
+  --text2: #8da3ba;
+  --text3: #4a5a70;
+  --text-white: #ffffff;
+  --accent: #5cceff;
+}
+
+html {
+  background-color: var(--color-bg-primary-val);
+  color: var(--color-text-primary-val);
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--color-bg-primary-val);
+  color: var(--color-text-primary-val);
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* Numeric Typography Update */
+.gradient-text {
+  background: linear-gradient(135deg, var(--text-white) 30%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.tabular-nums,
+.font-mono {
+  font-family: 'Inter', sans-serif !important;
+  font-variant-numeric: tabular-nums;
+  text-shadow: none !important;
+}
+.price-value {
+  font-family: 'Inter', sans-serif !important;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700 !important;
+  text-shadow: none !important;
+}
+.numeric-value {
+  font-family: 'Inter', sans-serif !important;
+  font-variant-numeric: tabular-nums;
+  text-shadow: none !important;
+}
+
+@keyframes shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
