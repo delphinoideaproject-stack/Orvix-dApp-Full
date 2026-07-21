@@ -6,6 +6,7 @@ const binanceIconSvg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/20
 
 interface Web3ContextType {
   address: string | null;
+  ensName: string | null;
   isConnected: boolean;
   balance: string;
   formattedBalance: number;
@@ -23,6 +24,7 @@ interface Web3ContextType {
 
 const Web3Context = createContext<Web3ContextType>({
   address: null,
+  ensName: null,
   isConnected: false,
   balance: '0',
   formattedBalance: 0,
@@ -42,6 +44,7 @@ export function Web3Provider({ children }: { children: React.ReactNode }) {
   const [address, setAddress] = useState<string | null>(() => {
     return localStorage.getItem('orvix_connected_address') || null;
   });
+  const [ensName, setEnsName] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState<boolean>(() => {
     return !!localStorage.getItem('orvix_connected_address');
   });
@@ -53,6 +56,33 @@ export function Web3Provider({ children }: { children: React.ReactNode }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [provider, setProvider] = useState<any>(null);
   const [bnbPrice, setBnbPrice] = useState<number>(600);
+
+  // Resolve ENS name if available on mainnet
+  useEffect(() => {
+    let isMounted = true;
+    if (!address) {
+      setEnsName(null);
+      return;
+    }
+    async function resolveEns() {
+      try {
+        const mainnetProvider = new ethers.JsonRpcProvider('https://cloudflare-eth.com');
+        const resolved = await mainnetProvider.lookupAddress(address);
+        if (isMounted) {
+          setEnsName(resolved);
+        }
+      } catch (err) {
+        console.warn('Failed to resolve ENS name:', err);
+        if (isMounted) {
+          setEnsName(null);
+        }
+      }
+    }
+    resolveEns();
+    return () => {
+      isMounted = false;
+    };
+  }, [address]);
 
   // Fetch live BNB price
   useEffect(() => {
@@ -141,6 +171,7 @@ export function Web3Provider({ children }: { children: React.ReactNode }) {
 
   const disconnect = () => {
     setAddress(null);
+    setEnsName(null);
     setIsConnected(false);
     setProvider(null);
     localStorage.removeItem('orvix_connected_address');
@@ -280,6 +311,7 @@ export function Web3Provider({ children }: { children: React.ReactNode }) {
     <Web3Context.Provider
       value={{
         address,
+        ensName,
         isConnected,
         balance,
         formattedBalance,
@@ -334,7 +366,7 @@ export function useBalance(options?: { address?: string; query?: { enabled?: boo
 }
 
 export function WalletModal({ isOpen, onClose }: { isOpen?: boolean; onClose?: () => void }) {
-  const { isModalOpen, close, connectWallet, isConnected, address, disconnect, balanceInUsd, formattedBalance, symbol } = useWeb3();
+  const { isModalOpen, close, connectWallet, isConnected, address, ensName, disconnect, balanceInUsd, formattedBalance, symbol } = useWeb3();
   const openState = isOpen !== undefined ? isOpen : isModalOpen;
   const handleClose = onClose || close;
   const [detected, setDetected] = useState<any[]>([]);
@@ -387,7 +419,7 @@ export function WalletModal({ isOpen, onClose }: { isOpen?: boolean; onClose?: (
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-xs text-zinc-400">Address</span>
-                <span className="text-xs font-mono text-zinc-200">{address ? `${address.substring(0, 6)}...${address.substring(address.length - 4)}` : ''}</span>
+                <span className="text-xs font-mono text-zinc-200">{ensName || (address ? `${address.substring(0, 6)}...${address.substring(address.length - 4)}` : '')}</span>
               </div>
               <div className="flex items-center justify-between pt-2 border-t border-zinc-700/50">
                 <span className="text-xs text-zinc-400">Portfolio Value</span>

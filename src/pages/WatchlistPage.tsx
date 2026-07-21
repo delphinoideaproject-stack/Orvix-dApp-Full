@@ -3,7 +3,8 @@ import { Page, Token } from '../types';
 import { TokenRow } from '../components/TokenRow';
 import { mockTokens, mockArchivedTokens, mockHistoryTokens } from '../data';
 import { useWatchlist } from '../hooks/useWatchlist';
-import { Star, Download } from 'lucide-react';
+import { Star, Download, SearchX, ListVideo } from 'lucide-react';
+import { EmptyState } from '../components/EmptyState';
 import { Button } from '../components/Button';
 import { exportTokensToCSV } from '../lib/csvUtils';
 
@@ -55,14 +56,18 @@ export function WatchlistPage({
           filteredTokens.map((t, index) => (
             <TokenRow key={t.id} index={index} token={t} showSwap={true} onNavigate={setCurrentPage} onSelect={onSelectToken} />
           ))
+        ) : watchlistTokens.length === 0 ? (
+          <EmptyState 
+            icon={ListVideo} 
+            title="Watchlist kamu masih kosong" 
+            description="Tambahkan token ke watchlist untuk memantau performanya dengan mudah di sini."
+          />
         ) : (
-          <div className="text-center py-20 border border-zinc-200 dark:border-zinc-800 rounded-2xl bg-white dark:bg-zinc-900">
-            <p className="text-zinc-500">
-              {watchlistTokens.length === 0 
-                ? "Your watchlist is empty. Add tokens to track them here." 
-                : "No tokens found matching your search."}
-            </p>
-          </div>
+          <EmptyState 
+            icon={SearchX} 
+            title="No tokens found" 
+            description="We couldn't find any tokens matching your search query in Watchlist."
+          />
         )}
       </div>
     </div>

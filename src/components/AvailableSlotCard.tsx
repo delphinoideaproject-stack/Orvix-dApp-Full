@@ -20,7 +20,7 @@ export function AvailableSlotCard({ setCurrentPage }: AvailableSlotCardProps) {
       </p>
       <Button 
         variant="outline" 
-        onClick={() => setCurrentPage && setCurrentPage('SUBMIT')}
+        onClick={() => setCurrentPage && setCurrentPage('CREATOR_PORTAL')}
         className="flex items-center gap-2 border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:border-blue-500 hover:text-blue-500"
       >
         <Plus className="w-4 h-4" />

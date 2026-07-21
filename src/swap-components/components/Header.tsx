@@ -1,64 +1,7 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronDown, X, Home, Settings as SettingsIcon } from 'lucide-react';
+import { X, Home, Settings as SettingsIcon } from 'lucide-react';
 import { useWallet, shortenAddress } from '../contexts/WalletContext';
-import type { WalletType } from '../types';
-
-const WALLETS: { type: WalletType; name: string; desc: string }[] = [
-  { type: 'metamask', name: 'MetaMask', desc: 'Browser extension' },
-  { type: 'walletconnect', name: 'WalletConnect', desc: 'Scan with mobile' },
-  { type: 'trust', name: 'Trust Wallet', desc: 'Mobile / extension' },
-  { type: 'binance', name: 'Binance Wallet', desc: 'Binance Chain' },
-  { type: 'coinbase', name: 'Coinbase Wallet', desc: 'Browser / mobile' },
-  { type: 'rabby', name: 'Rabby', desc: 'Browser extension' },
-];
-
-function WalletModal({ onClose }: { onClose: () => void }) {
-  const { connect } = useWallet();
-
-  return (
-    <AnimatePresence>
-      <motion.div
-        className="fixed inset-0 z-[150] flex items-center justify-center p-4"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.2 }}
-      >
-        <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-        <motion.div
-          initial={{ scale: 0.94, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.94, opacity: 0 }}
-          transition={{ duration: 0.22, ease: 'easeOut' }}
-          className="relative w-full max-w-md p-6 rounded-2xl border border-border bg-bg-secondary shadow-soft"
-        >
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="text-lg font-semibold">Connect Wallet</h2>
-            <button onClick={onClose} className="text-text-muted hover:text-text-primary transition-colors">
-              <X size={20} />
-            </button>
-          </div>
-          <div className="space-y-2">
-            {WALLETS.map((w) => (
-              <button
-                key={w.type}
-                onClick={() => { connect(w.type); onClose(); }}
-                className="w-full flex items-center justify-between p-4 rounded-xl border border-border hover:border-border-hover hover:bg-hover transition-all duration-200 text-left"
-              >
-                <div>
-                  <p className="font-medium text-sm">{w.name}</p>
-                  <p className="text-xs text-text-secondary mt-0.5">{w.desc}</p>
-                </div>
-                <ChevronDown size={18} className="text-text-muted -rotate-90" />
-              </button>
-            ))}
-          </div>
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
-  );
-}
 
 function DrawerMenu({ open, onClose, onNavigate }: { open: boolean; onClose: () => void; onNavigate: (page: 'home' | 'settings') => void }) {
   return (
@@ -110,8 +53,7 @@ function DrawerMenu({ open, onClose, onNavigate }: { open: boolean; onClose: () 
 }
 
 export default function Header({ onNavigate }: { onNavigate: (page: 'home' | 'settings') => void }) {
-  const { address, connected, disconnect, chainId } = useWallet();
-  const [showWallet, setShowWallet] = useState(false);
+  const { address, connected, disconnect, chainId, connect } = useWallet();
   const [showDrawer, setShowDrawer] = useState(false);
 
   const isTestnet = chainId !== null && chainId !== 56;
@@ -141,7 +83,7 @@ export default function Header({ onNavigate }: { onNavigate: (page: 'home' | 'se
             </div>
           ) : (
             <button
-              onClick={() => setShowWallet(true)}
+              onClick={() => connect('metamask')}
               className="px-5 py-2 rounded-xl bg-accent-cyan text-bg-primary font-medium text-sm hover:brightness-110 active:scale-[0.98] transition-all duration-200"
             >
               Connect Wallet
@@ -160,7 +102,6 @@ export default function Header({ onNavigate }: { onNavigate: (page: 'home' | 'se
         </div>
       </header>
 
-      {showWallet && <WalletModal onClose={() => setShowWallet(false)} />}
       <DrawerMenu open={showDrawer} onClose={() => setShowDrawer(false)} onNavigate={onNavigate} />
     </>
   );

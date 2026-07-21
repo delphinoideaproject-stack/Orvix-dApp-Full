@@ -19,8 +19,8 @@ export function Header({
   setSearchQuery: (q: string) => void;
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { isConnected, address, balanceInUsd, open } = useWeb3();
-  const shortAddress = address ? `${address.substring(0, 6)}...${address.substring(address.length - 4)}` : '';
+  const { isConnected, address, balanceInUsd, open, ensName } = useWeb3();
+  const displayName = ensName || (address ? `${address.substring(0, 6)}...${address.substring(address.length - 4)}` : '');
   const { theme, setTheme } = useTheme();
 
   const ThemeIcon = theme === 'light' ? Sun : theme === 'dark' ? Moon : Monitor;
@@ -95,7 +95,7 @@ export function Header({
               {isConnected ? (
                 <div className="flex flex-col items-start leading-tight">
                   <span className="text-xs font-bold text-white">${balanceInUsd}</span>
-                  <span className="text-[10px] text-[var(--text2)] font-mono">{shortAddress}</span>
+                  <span className="text-[10px] text-[var(--text2)] font-mono">{displayName}</span>
                 </div>
               ) : (
                 'Connect Wallet'

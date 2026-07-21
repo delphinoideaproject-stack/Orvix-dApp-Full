@@ -25,10 +25,10 @@ const IconCopyButton = ({ text, className, isDarkText = false }: { text: string;
     <button
       onClick={handleCopy}
       className={cn(
-        "p-1.5 rounded-lg transition-colors cursor-pointer flex items-center justify-center backdrop-blur-md", 
+        "p-1 transition-colors cursor-pointer flex items-center justify-center", 
         isDarkText 
-          ? "bg-zinc-100 hover:bg-zinc-200 text-zinc-500 hover:text-zinc-900 dark:bg-white/10 dark:hover:bg-white/20 dark:text-white/70 dark:hover:text-white"
-          : "bg-white/10 hover:bg-white/20 text-white/70 hover:text-white",
+          ? "text-zinc-500 hover:text-zinc-900 dark:text-white/70 dark:hover:text-white"
+          : "text-white/70 hover:text-white",
         className
       )}
       title="Copy"

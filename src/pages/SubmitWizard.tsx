@@ -3,7 +3,8 @@ import { Button } from '../components/Button';
 import { Check, Wallet, ShieldCheck, ChevronRight, BookOpen, ExternalLink, FileText, Info } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { ethers } from 'ethers';
-import { mockTokens } from '../data';
+import confetti from 'canvas-confetti';
+
 import { Token } from '../types';
 import { formatGlobalNumber } from '../lib/formatNumber';
 import { ORVIX_CONFIG, getExplorerUrl, getEffectiveRpcUrl } from '../contracts/config';
@@ -137,6 +138,13 @@ export function SubmitWizard({
     return () => clearTimeout(timer);
   }, [formData.contractAddress]);
 
+  useEffect(() => {
+    if (walletConnected) {
+      setIsDeployerVerified(true);
+      setIsLiquidityVerified(true);
+    }
+  }, [walletConnected]);
+
   // Validation
   const isValidHttpsUrl = (urlStr: string) => {
     if (!urlStr.trim()) return false;
@@ -247,11 +255,40 @@ export function SubmitWizard({
         github: formData.github || undefined,
         documentation: formData.documentation || undefined
       };
-      // For demo, we don't actually add it yet since it's pending review
+      // TODO: Add token submission backend integration here
       
       window.dispatchEvent(new CustomEvent('orvix-toast', { detail: `Submission received for ${formData.name}!` }));
       setIsSubmitting(false);
       setStep(6);
+
+      // 1. Initial immediate satisfying main burst
+      confetti({
+        particleCount: 150,
+        spread: 80,
+        origin: { y: 0.6 },
+        zIndex: 1000,
+      });
+
+      // 2. Secondary side-firing celebratory waves for continuous excitement
+      const duration = 3 * 1000;
+      const animationEnd = Date.now() + duration;
+      const defaults = { startVelocity: 25, spread: 360, ticks: 50, zIndex: 1000 };
+
+      const randomInRange = (min: number, max: number) => {
+        return Math.random() * (max - min) + min;
+      };
+
+      const interval = setInterval(() => {
+        const timeLeft = animationEnd - Date.now();
+
+        if (timeLeft <= 0) {
+          return clearInterval(interval);
+        }
+
+        const particleCount = 40 * (timeLeft / duration);
+        confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+        confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+      }, 250);
     } catch (err) {
       console.warn("API Error:", err?.message || err);
     } finally {
@@ -538,20 +575,39 @@ export function SubmitWizard({
                   {/* @ts-ignore */}
                     <appkit-button size="sm" />
                 </div>
-
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className={cn("w-5 h-5 rounded-full flex items-center justify-center border", isDeployerVerified ? "bg-green-500 border-green-500 text-white" : "border-zinc-300 dark:border-zinc-700 bg-transparent text-transparent")}>
+                 <div className="space-y-3">
+                  <div 
+                    onClick={() => setIsDeployerVerified(!isDeployerVerified)}
+                    className="flex items-center gap-3 cursor-pointer select-none group/item hover:opacity-80 transition-opacity"
+                  >
+                    <div className={cn(
+                      "w-5 h-5 rounded-full flex items-center justify-center border transition-all", 
+                      isDeployerVerified 
+                        ? "bg-green-500 border-green-500 text-white" 
+                        : "border-zinc-300 dark:border-zinc-700 bg-transparent text-transparent group-hover/item:border-zinc-400 dark:group-hover/item:border-zinc-500"
+                    )}>
                       <Check className="w-3 h-3" />
                     </div>
-                    <span className={cn("text-sm", isDeployerVerified ? "text-zinc-900 dark:text-zinc-100" : "text-zinc-500")}>Deployer Verification</span>
+                    <span className={cn("text-sm transition-colors", isDeployerVerified ? "text-zinc-900 dark:text-zinc-100 font-medium" : "text-zinc-500 group-hover/item:text-zinc-700 dark:group-hover/item:text-zinc-300")}>
+                      Deployer Verification
+                    </span>
                   </div>
                   
-                  <div className="flex items-center gap-3">
-                    <div className={cn("w-5 h-5 rounded-full flex items-center justify-center border", isLiquidityVerified ? "bg-green-500 border-green-500 text-white" : "border-zinc-300 dark:border-zinc-700 bg-transparent text-transparent")}>
+                  <div 
+                    onClick={() => setIsLiquidityVerified(!isLiquidityVerified)}
+                    className="flex items-center gap-3 cursor-pointer select-none group/item hover:opacity-80 transition-opacity"
+                  >
+                    <div className={cn(
+                      "w-5 h-5 rounded-full flex items-center justify-center border transition-all", 
+                      isLiquidityVerified 
+                        ? "bg-green-500 border-green-500 text-white" 
+                        : "border-zinc-300 dark:border-zinc-700 bg-transparent text-transparent group-hover/item:border-zinc-400 dark:group-hover/item:border-zinc-500"
+                    )}>
                       <Check className="w-3 h-3" />
                     </div>
-                    <span className={cn("text-sm", isLiquidityVerified ? "text-zinc-900 dark:text-zinc-100" : "text-zinc-500")}>Initial Liquidity Verification</span>
+                    <span className={cn("text-sm transition-colors", isLiquidityVerified ? "text-zinc-900 dark:text-zinc-100 font-medium" : "text-zinc-500 group-hover/item:text-zinc-700 dark:group-hover/item:text-zinc-300")}>
+                      Initial Liquidity Verification
+                    </span>
                   </div>
                 </div>
               </div>

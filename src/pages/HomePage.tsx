@@ -3,13 +3,15 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Page, Token } from '../types';
 import { mockTokens, mockArchivedTokens } from '../data';
 import { TokenRow } from '../components/TokenRow';
-import { TokenPosterCard } from '../components/TokenPosterCard';
+import { TokenPosterCard, TokenPosterCardSkeleton } from '../components/TokenPosterCard';
+import { useAlphaData } from '../hooks/useAlphaData';
 import { AvailableSlotCard } from '../components/AvailableSlotCard';
 import { TokenLogo } from '../components/TokenLogo';
+import { EmptyState } from '../components/EmptyState';
 import { Button } from '../components/Button';
 import { CopyButton } from '../components/CopyButton';
 import { cn } from '../lib/utils';
-import { ArrowUp, ArrowRight, Info, Globe, Send, Github, BookOpen, ExternalLink, Check, Copy, ChevronUp, Download, Share2, ChevronDown } from 'lucide-react';
+import { ArrowUp, ArrowRight, Info, Globe, Send, Github, BookOpen, ExternalLink, Check, Copy, ChevronUp, Download, Share2, ChevronDown, SearchX, Rocket, ArchiveX } from 'lucide-react';
 import { formatGlobalNumber } from '../lib/formatNumber';
 import { getExplorerUrl } from '../contracts/config';
 
@@ -110,7 +112,9 @@ export function HomePage({
     touchStartRef.current = null;
   };
 
-  const filteredNewAlpha = mockTokens.filter(t => 
+  const { tokens: newAlphaTokens, loading: isLoadingNewAlpha } = useAlphaData(mockTokens);
+
+  const filteredNewAlpha = newAlphaTokens.filter(t => 
     !searchQuery || 
     t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     t.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -149,36 +153,38 @@ export function HomePage({
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.1 }}
-        className="flex border-b border-zinc-200 dark:border-zinc-800 mb-6"
+        className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 mb-6"
       >
-        <button
-          onClick={() => setActiveTab('new-alpha')}
-          className={cn(
-            "pb-3 px-6 text-sm font-semibold transition-colors relative cursor-pointer",
-            activeTab === 'new-alpha' 
-              ? "text-zinc-900 dark:text-zinc-100" 
-              : "text-[#8da3ba] hover:text-zinc-700 dark:hover:text-zinc-300"
-          )}
-        >
-          New Alpha
-          {activeTab === 'new-alpha' && (
-            <motion.div layoutId="activeTabIndicator" className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1e3a5f] dark:bg-blue-500" />
-          )}
-        </button>
-        <button
-          onClick={() => setActiveTab('archive')}
-          className={cn(
-            "pb-3 px-6 text-sm font-semibold transition-colors relative cursor-pointer",
-            activeTab === 'archive' 
-              ? "text-zinc-900 dark:text-zinc-100" 
-              : "text-[#8da3ba] hover:text-zinc-700 dark:hover:text-zinc-300"
-          )}
-        >
-          Archive
-          {activeTab === 'archive' && (
-            <motion.div layoutId="activeTabIndicator" className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1e3a5f] dark:bg-blue-500" />
-          )}
-        </button>
+        <div className="flex">
+          <button
+            onClick={() => setActiveTab('new-alpha')}
+            className={cn(
+              "pb-3 px-6 text-sm font-semibold transition-colors relative cursor-pointer",
+              activeTab === 'new-alpha' 
+                ? "text-zinc-900 dark:text-zinc-100" 
+                : "text-[#8da3ba] hover:text-zinc-700 dark:hover:text-zinc-300"
+            )}
+          >
+            New Alpha
+            {activeTab === 'new-alpha' && (
+              <motion.div layoutId="activeTabIndicator" className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1e3a5f] dark:bg-blue-500" />
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab('archive')}
+            className={cn(
+              "pb-3 px-6 text-sm font-semibold transition-colors relative cursor-pointer",
+              activeTab === 'archive' 
+                ? "text-zinc-900 dark:text-zinc-100" 
+                : "text-[#8da3ba] hover:text-zinc-700 dark:hover:text-zinc-300"
+            )}
+          >
+            Archive
+            {activeTab === 'archive' && (
+              <motion.div layoutId="activeTabIndicator" className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1e3a5f] dark:bg-blue-500" />
+            )}
+          </button>
+        </div>
       </motion.div>
 
       {/* Swipe Container */}
@@ -193,35 +199,43 @@ export function HomePage({
         )}>
           {/* New Alpha Panel */}
           <div ref={newAlphaRef} className="w-1/2 shrink-0 overflow-y-auto pr-2 max-h-[75vh]">
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 sm:gap-4 pb-6">
-              {filteredNewAlpha.length > 0 ? (
-                filteredNewAlpha.map((t, index) => (
-                  <TokenPosterCard 
-                    key={`${t.id}-${index}`} 
-                    token={t} 
-                    index={index} 
-                    onNavigate={setCurrentPage} 
-                    onSelect={onSelectToken} 
-                  />
+            <div className="grid grid-cols-3 min-[480px]:grid-cols-4 min-[680px]:grid-cols-5 min-[880px]:grid-cols-6 gap-3 sm:gap-4 pb-6">
+              {isLoadingNewAlpha ? (
+                Array.from({ length: 6 }).map((_, i) => (
+                  <TokenPosterCardSkeleton key={`skeleton-${i}`} />
                 ))
-              ) : null}
+              ) : (
+                <>
+                  {filteredNewAlpha.length > 0 ? (
+                    filteredNewAlpha.map((t, index) => (
+                      <TokenPosterCard 
+                        key={`${t.id}-${index}`} 
+                        token={t} 
+                        index={index} 
+                        onNavigate={setCurrentPage} 
+                        onSelect={onSelectToken} 
+                      />
+                    ))
+                  ) : null}
 
-              {Array.from({ length: emptySlotsCount }).map((_, i) => (
-                <motion.div 
-                  key={`empty-slot-${i}`}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.3, delay: 0.05 * (filteredNewAlpha.length + i) }}
-                  onClick={() => setCurrentPage?.('SUBMIT')}
-                  className="aspect-[3/4] border-2 border-dashed border-zinc-300 dark:border-zinc-800 rounded-2xl sm:rounded-3xl bg-zinc-50/50 dark:bg-zinc-900/30 p-3 flex flex-col items-center justify-center text-center cursor-pointer hover:border-blue-500 transition-colors group shadow-sm"
-                >
-                  <div className="w-8 h-8 rounded-full bg-zinc-200 dark:bg-zinc-800 group-hover:bg-blue-600 group-hover:text-white text-zinc-500 flex items-center justify-center transition-colors mb-1.5">
-                    <span className="text-base font-bold">+</span>
-                  </div>
-                  <div className="text-[11px] sm:text-xs font-bold text-zinc-700 dark:text-zinc-300">Available Slot</div>
-                  <div className="text-[9px] sm:text-[10px] text-zinc-400 mt-0.5">Submit Token</div>
-                </motion.div>
-              ))}
+                  {Array.from({ length: emptySlotsCount }).map((_, i) => (
+                    <motion.div 
+                      key={`empty-slot-${i}`}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.3, delay: 0.05 * (filteredNewAlpha.length + i) }}
+                      onClick={() => setCurrentPage?.('CREATOR_PORTAL')}
+                      className="aspect-[3/4] border-2 border-dashed border-zinc-300 dark:border-zinc-800 rounded-2xl sm:rounded-3xl bg-zinc-50/50 dark:bg-zinc-900/30 p-2 min-[380px]:p-3 flex flex-col items-center justify-center text-center cursor-pointer hover:border-blue-500 transition-colors group shadow-sm"
+                    >
+                      <div className="w-6 h-6 min-[380px]:w-8 min-[380px]:h-8 rounded-full bg-zinc-200 dark:bg-zinc-800 group-hover:bg-blue-600 group-hover:text-white text-zinc-500 flex items-center justify-center transition-colors mb-1 min-[380px]:mb-1.5">
+                        <span className="text-sm min-[380px]:text-base font-bold">+</span>
+                      </div>
+                      <div className="text-[10px] min-[380px]:text-[11px] sm:text-xs font-bold text-zinc-700 dark:text-zinc-300">Available Slot</div>
+                      <div className="text-[8px] min-[380px]:text-[9px] sm:text-[10px] text-zinc-400 mt-0.5">Submit Token</div>
+                    </motion.div>
+                  ))}
+                </>
+              )}
             </div>
           </div>
 
@@ -248,7 +262,6 @@ export function HomePage({
                         className="flex items-center justify-between cursor-pointer group py-2"
                         onClick={() => onSelectToken?.(t)}
                       >
-                        {/* Left: Icon + Pair */}
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full overflow-hidden bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0">
                             <TokenLogo tokenId={t.logo || t.id} className="w-8 h-8" />
@@ -262,12 +275,10 @@ export function HomePage({
                           </div>
                         </div>
 
-                        {/* Middle: Current Price */}
                         <div className="text-right sm:text-left font-mono font-medium text-zinc-900 dark:text-zinc-100">
-                          ${formatGlobalNumber(t.price)}
+                          $\{formatGlobalNumber(t.price)}
                         </div>
 
-                        {/* Right: Swap Button + Arrow */}
                         <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
                           <Button
                             variant="outline"
@@ -290,7 +301,6 @@ export function HomePage({
                         </div>
                       </div>
 
-                      {/* Inline Expanded Detail View */}
                       {isExpanded && (
                         <motion.div 
                           initial={{ opacity: 0, height: 0 }}
@@ -302,26 +312,18 @@ export function HomePage({
                             <div>
                               <div className="flex items-center gap-1.5 mb-1">
                                 <div className="text-xs font-semibold text-zinc-500">Contract</div>
-                                <div className="relative group/tooltip inline-flex items-center">
-                                  <Info className="w-3.5 h-3.5 text-blue-500 cursor-pointer" />
-                                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover/tooltip:flex flex-col gap-1 w-64 p-3 bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl z-30 text-xs font-sans text-zinc-200 pointer-events-none">
-                                    <span className="font-bold text-zinc-100">Smart Contract Address</span>
-                                    <span className="text-zinc-400">Decentralized smart contract on BNB Chain governing token transfers, liquidity pools, and AMM V2 trading rules.</span>
-                                    <span className="text-[11px] font-mono text-blue-400 break-all mt-0.5">{t.contract}</span>
-                                  </div>
-                                </div>
                               </div>
                               <div className="font-mono text-xs text-zinc-900 dark:text-zinc-100 break-all mb-2">{t.contract}</div>
-                              <div className="flex gap-2">
-                                <CopyButton text={t.contract} label="Copy" className="text-xs py-1 px-2.5 rounded-lg bg-zinc-200/60 dark:bg-zinc-800" />
+                              <div className="flex gap-2 items-center">
+                                <CopyButton text={t.contract} />
                                 <a href={`${getExplorerUrl()}/address/${t.contract}`} target="_blank" rel="noreferrer" className="text-xs py-1 px-2.5 rounded-lg bg-zinc-200/60 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">BscScan</a>
                               </div>
                             </div>
                             <div>
                               <div className="text-xs font-semibold text-zinc-500 mb-1">Creator</div>
                               <div className="font-mono text-xs text-zinc-900 dark:text-zinc-100 break-all mb-2">{t.creator}</div>
-                              <div className="flex gap-2">
-                                <CopyButton text={t.creator} label="Copy" className="text-xs py-1 px-2.5 rounded-lg bg-zinc-200/60 dark:bg-zinc-800" />
+                              <div className="flex gap-2 items-center">
+                                <CopyButton text={t.creator} />
                                 <a href={`${getExplorerUrl()}/address/${t.creator}`} target="_blank" rel="noreferrer" className="text-xs py-1 px-2.5 rounded-lg bg-zinc-200/60 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">BscScan</a>
                               </div>
                             </div>
@@ -340,9 +342,13 @@ export function HomePage({
                     </motion.div>
                   );
                 })
-              ) : (
-                <div className="text-center py-20 text-zinc-500">
+              ) : searchQuery ? (
+                <div className="py-12 text-center text-sm text-zinc-500 dark:text-zinc-400 font-sans">
                   No archived tokens found matching your search.
+                </div>
+              ) : (
+                <div className="py-12 text-center text-sm text-zinc-400 dark:text-zinc-500 font-medium font-sans">
+                  No archived tokens yet
                 </div>
               )}
             </div>
@@ -360,7 +366,7 @@ export function HomePage({
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={scrollToTop}
-            className="fixed bottom-8 right-8 z-50 p-3 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-full shadow-lg transition-colors cursor-pointer flex items-center justify-center"
+            className="fixed bottom-24 lg:bottom-8 right-6 lg:right-8 z-50 p-3 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-full shadow-lg transition-colors cursor-pointer flex items-center justify-center"
             aria-label="Scroll to top"
           >
             <ArrowUp className="w-5 h-5" />

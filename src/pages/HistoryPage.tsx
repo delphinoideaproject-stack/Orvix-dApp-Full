@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Token, Page } from '../types';
 import { ExternalLink } from 'lucide-react';
 import { getExplorerUrl } from '../contracts/config';
@@ -21,21 +21,22 @@ export function HistoryPage({ tokens, searchQuery = '' }: HistoryPageProps) {
   return (
     <div className="w-full">
       {/* Page Header */}
-      <div className="mb-10 pb-6 border-b border-[#1e3a5f]/15">
-        <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2 tracking-tight">History</h1>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">Tokens that have graduated from Orvix New Alpha.</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-10 pb-6 border-b border-[#1e3a5f]/15">
+        <div>
+          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2 tracking-tight">History</h1>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">Tokens that have graduated from Orvix New Alpha.</p>
+        </div>
       </div>
 
-      {filteredTokens.length > 0 ? (
-        <div className="divide-y divide-[#1e3a5f]/15">
-          {filteredTokens.map((t) => {
+      <div className="divide-y divide-[#1e3a5f]/15 border-t border-b border-[#1e3a5f]/15 pb-12">
+        {filteredTokens.length > 0 ? (
+          filteredTokens.map((t) => {
             const exitReason = t.exitType || 'Major Exchange';
             const bscscanUrl = `${getExplorerUrl()}/address/${t.contract}`;
             const dexscreenerUrl = `https://dexscreener.com/bsc/${t.contract}`;
 
             return (
-              <div key={t.id} className="py-6 first:pt-0 last:pb-0 space-y-3">
-                {/* Top line: Name (Symbol) and Graduated Date */}
+              <div key={t.id} className="py-6 first:pt-4 last:pb-0 space-y-3">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div className="flex items-center gap-3 flex-wrap">
                     <span className="text-lg font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">
@@ -50,7 +51,6 @@ export function HistoryPage({ tokens, searchQuery = '' }: HistoryPageProps) {
                   </div>
                 </div>
 
-                {/* Links list */}
                 <div className="space-y-1.5 pt-1 text-sm">
                   {exitReason.toLowerCase().includes('v3') ? (
                     <div className="flex items-center gap-2">
@@ -108,13 +108,17 @@ export function HistoryPage({ tokens, searchQuery = '' }: HistoryPageProps) {
                 </div>
               </div>
             );
-          })}
-        </div>
-      ) : (
-        <div className="text-center py-20 text-zinc-500 dark:text-zinc-400 text-sm">
-          No graduated tokens yet.
-        </div>
-      )}
+          })
+        ) : searchQuery ? (
+          <div className="py-12 text-center text-sm text-zinc-500 dark:text-zinc-400 font-sans">
+            No history entries found matching your search.
+          </div>
+        ) : (
+          <div className="py-12 text-center text-sm text-zinc-400 dark:text-zinc-500 font-medium font-sans">
+            No history entries yet
+          </div>
+        )}
+      </div>
     </div>
   );
 }

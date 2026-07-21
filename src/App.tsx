@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Page, Token } from './types';
 import { OrvixLogo } from './components/OrvixLogo';
 import { HomePage } from './pages/HomePage';
@@ -50,7 +50,6 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>('HOME');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedToken, setSelectedToken] = useState<Token | null>(null);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const currentNetwork = 'testnet';
   
   const { open: appKitOpen } = useAppKit();
@@ -77,7 +76,6 @@ export default function App() {
   const [theme, setTheme] = useState<'dark' | 'light' | 'system'>(() => {
     return (localStorage.getItem('orvix_theme') as 'dark' | 'light' | 'system') || 'light';
   });
-  const [language, setLanguage] = useState('EN');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [promptModalOpen, setPromptModalOpen] = useState(false);
   const [isSwapModalOpen, setIsSwapModalOpen] = useState(false);
@@ -140,7 +138,6 @@ export default function App() {
   const handleNavigate = (page: Page) => {
     setCurrentPage(page);
     setSelectedToken(null);
-    setMobileMenuOpen(false);
   };
 
   useEffect(() => {
@@ -220,7 +217,7 @@ export default function App() {
           <CreatorPortalPage 
             walletConnected={isConnected}
             walletAddress={address}
-            onOpenWalletModal={() => open()}
+            onOpenWalletModal={() => openWallet()}
             onNavigate={handleNavigate}
           />
         );
@@ -229,7 +226,7 @@ export default function App() {
           <SubmitWizard 
             walletConnected={isConnected}
             walletAddress={address}
-            onOpenWalletModal={() => open()}
+            onOpenWalletModal={() => openWallet()}
           />
         );
       case 'DOCS':
@@ -304,68 +301,14 @@ export default function App() {
               )}
             </button>
           <button 
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="text-[var(--text)]"
-            aria-label="Toggle Menu"
+            onClick={() => setSettingsOpen(true)}
+            className="text-[var(--text)] hover:text-blue-500 transition-colors p-2 rounded-xl cursor-pointer"
+            aria-label="App Settings"
           >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            <Settings className="w-5 h-5" />
           </button>
         </div>
       </div>
-
-      {/* MOBILE MENU DROPDOWN */}
-      {mobileMenuOpen && (
-        <motion.div 
-          initial={{ opacity: 0, y: -16 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -16 }}
-          transition={{ duration: 0.25, ease: "easeOut" }}
-          className="lg:hidden fixed inset-x-0 top-[65px] bg-[var(--bg)]/95 backdrop-blur-md border-b border-[var(--border)] z-40 p-4 space-y-2 max-h-[85vh] overflow-y-auto shadow-2xl"
-        >
-          <div className="px-3 py-2 bg-[var(--card)] rounded-xl border border-[var(--border)] mb-3 flex items-center justify-between text-xs font-mono">
-            <span className="text-zinc-400">Network:</span>
-            <span className="text-green-500 font-bold flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              AMM V2 · BNB Chain
-            </span>
-          </div>
-
-          {navItems.map(item => {
-            const Icon = item.icon;
-            const active = currentPage === item.page;
-            return (
-              <motion.button
-                key={item.page}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => handleNavigate(item.page)}
-                className={cn(
-                  "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-left relative overflow-hidden",
-                  active 
-                    ? "bg-blue-600/10 border border-blue-500/30 text-[var(--text)]" 
-                    : "text-zinc-400 hover:text-[var(--text)] hover:bg-[var(--card)] border border-transparent"
-                )}
-              >
-                {active && (
-                  <motion.div 
-                    layoutId="mobileActiveIndicator"
-                    className="absolute inset-0 bg-blue-600/10 border border-blue-500/30 rounded-xl z-0"
-                    transition={{ type: "spring", stiffness: 350, damping: 30 }}
-                  />
-                )}
-                <Icon className={cn("w-4 h-4 relative z-10", active ? "text-blue-500" : "text-zinc-500")} />
-                <span className="relative z-10">{item.label}</span>
-              </motion.button>
-            );
-          })}
-          <button
-            onClick={() => { setMobileMenuOpen(false); setSettingsOpen(true); }}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-left bg-blue-600/10 border border-blue-500/30 text-[var(--text)] mt-2"
-          >
-            <Settings className="w-4 h-4 text-blue-500" />
-            App Settings (Theme & Language)
-          </button>
-        </motion.div>
-      )}
 
       {/* DESKTOP LEFT SIDEBAR (LUSTRO SPLIT-SCREEN AMBIENT FRAMING) */}
       <aside className="hidden lg:flex w-80 shrink-0 h-screen sticky top-0 bg-[var(--bg)]/85 backdrop-blur-md border-r border-[var(--border)] flex-col justify-between p-6 overflow-y-auto select-none">
@@ -431,7 +374,7 @@ export default function App() {
             className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all text-left cursor-pointer border border-[var(--border)] bg-[var(--card)] text-zinc-400 hover:text-[var(--text)] hover:bg-zinc-800/50 mt-4"
           >
             <Settings className="w-4 h-4" />
-            Settings ({theme}, {language})
+            App Settings
           </button>
         </div>
 
@@ -506,23 +449,102 @@ export default function App() {
         </header>
 
         {/* Page View Container */}
-        <div className={selectedToken ? "flex-1" : "w-full min-h-screen px-4 md:px-8 lg:px-12 py-8 flex-1"}>
-          {renderPage()}
+        <div className={cn(selectedToken ? "flex-1" : "w-full min-h-screen px-4 md:px-8 lg:px-12 py-8 flex-1 pb-24 lg:pb-8")}>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={selectedToken ? `token-${selectedToken.id}` : `page-${currentPage}`}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+            >
+              {renderPage()}
+            </motion.div>
+          </AnimatePresence>
         </div>
 
         {!isSwapModalOpen && (
-          <Footer setCurrentPage={handleNavigate} />
+          <div className="pb-20 lg:pb-0">
+            <Footer setCurrentPage={handleNavigate} />
+          </div>
         )}
       </main>
+
+      {/* FIXED MOBILE BOTTOM NAVIGATION */}
+      <div className="lg:hidden fixed bottom-0 inset-x-0 bg-[var(--bg)]/95 backdrop-blur-md border-t border-[var(--border)] z-40 px-6 py-2.5 pb-safe shadow-[0_-4px_24px_rgba(0,0,0,0.1)]">
+        <div className="max-w-md mx-auto flex justify-between items-center">
+          
+          {/* Home Tab */}
+          <button
+            onClick={() => handleNavigate('HOME')}
+            className={cn(
+              "flex-1 flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all cursor-pointer relative",
+              currentPage === 'HOME' ? "text-blue-500 font-semibold" : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
+            )}
+          >
+            {currentPage === 'HOME' && (
+              <motion.div
+                layoutId="bottomNavIndicator"
+                className="absolute inset-0 bg-blue-500/10 dark:bg-blue-500/15 rounded-xl -z-10"
+                transition={{ type: "spring", stiffness: 380, damping: 30 }}
+              />
+            )}
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.2" stroke="currentColor" className="w-5 h-5 mb-0.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+            </svg>
+            <span className="text-[10px] tracking-wide font-medium">Home</span>
+          </button>
+
+          {/* Trade Tab */}
+          <button
+            onClick={() => handleNavigate('SWAP')}
+            className={cn(
+              "flex-1 flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all cursor-pointer relative",
+              currentPage === 'SWAP' ? "text-blue-500 font-semibold" : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
+            )}
+          >
+            {currentPage === 'SWAP' && (
+              <motion.div
+                layoutId="bottomNavIndicator"
+                className="absolute inset-0 bg-blue-500/10 dark:bg-blue-500/15 rounded-xl -z-10"
+                transition={{ type: "spring", stiffness: 380, damping: 30 }}
+              />
+            )}
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.2" stroke="currentColor" className="w-5 h-5 mb-0.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+            </svg>
+            <span className="text-[10px] tracking-wide font-medium">Trade</span>
+          </button>
+
+          {/* Submit Tab */}
+          <button
+            onClick={() => handleNavigate('CREATOR_PORTAL')}
+            className={cn(
+              "flex-1 flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all cursor-pointer relative",
+              currentPage === 'CREATOR_PORTAL' ? "text-blue-500 font-semibold" : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
+            )}
+          >
+            {currentPage === 'CREATOR_PORTAL' && (
+              <motion.div
+                layoutId="bottomNavIndicator"
+                className="absolute inset-0 bg-blue-500/10 dark:bg-blue-500/15 rounded-xl -z-10"
+                transition={{ type: "spring", stiffness: 380, damping: 30 }}
+              />
+            )}
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.2" stroke="currentColor" className="w-5 h-5 mb-0.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
+            </svg>
+            <span className="text-[10px] tracking-wide font-medium">Submit</span>
+          </button>
+
+        </div>
+      </div>
 
       <SettingsModal 
         isOpen={settingsOpen}
         onClose={() => setSettingsOpen(false)}
         theme={theme}
         setTheme={setTheme}
-        language={language}
-        setLanguage={setLanguage}
-        onOpenPromptModal={() => setPromptModalOpen(true)}
       />
 
       <OrvixPromptModal 

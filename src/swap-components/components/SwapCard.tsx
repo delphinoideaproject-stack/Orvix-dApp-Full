@@ -31,7 +31,7 @@ function inputFontSize(value: string): string {
 
 export default function SwapCard() {
   const { address, connected, provider, connect } = useWallet();
-  const { settings } = useSettings();
+  const { settings, updateSettings } = useSettings();
   const { toast } = useToast();
 
   const [tokenIn, setTokenIn] = useState<TokenInfo>(VERIFIED_TOKENS[0]);
@@ -43,6 +43,31 @@ export default function SwapCard() {
   const [balanceOut, setBalanceOut] = useState<string | null>(null);
   const [allowance, setAllowance] = useState<bigint>(0n);
   const [showSlippage, setShowSlippage] = useState(false);
+
+  const [customSlippageInput, setCustomSlippageInput] = useState(() => {
+    const isPreset = [10, 50, 100].includes(settings.slippageBps);
+    return isPreset ? '' : (settings.slippageBps / 100).toString();
+  });
+
+  const handleCustomSlippageChange = (value: string) => {
+    const sanitized = value.replace(/[^0-9.]/g, '');
+    const parts = sanitized.split('.');
+    let finalValue = sanitized;
+    if (parts.length > 2) {
+      finalValue = parts[0] + '.' + parts.slice(1).join('');
+    }
+    setCustomSlippageInput(finalValue);
+    const parsed = parseFloat(finalValue);
+    if (!isNaN(parsed) && parsed > 0 && parsed <= 50) {
+      const bps = Math.round(parsed * 100);
+      updateSettings({ slippageBps: bps });
+    }
+  };
+
+  const handlePresetSlippage = (bps: number) => {
+    updateSettings({ slippageBps: bps });
+    setCustomSlippageInput('');
+  };
 
   const {
     pools,
@@ -407,13 +432,15 @@ export default function SwapCard() {
       <div className="mt-3">
         <button
           onClick={() => setShowSlippage(!showSlippage)}
-          className="w-full flex items-center justify-between p-3 rounded-xl border border-border bg-white/[0.02] hover:bg-hover transition-colors"
+          className="w-full flex items-center justify-between p-3 rounded-xl border border-border bg-white/[0.02] hover:bg-hover transition-colors cursor-pointer"
         >
           <div className="flex items-center gap-2">
             <Settings2 size={14} className="text-text-muted" />
             <span className="text-xs text-text-secondary">Slippage Tolerance</span>
           </div>
-          <span className="text-xs font-medium text-text-primary">{(settings.slippageBps / 100).toFixed(1)}%</span>
+          <span className="text-xs font-medium text-text-primary">
+            {(settings.slippageBps / 100).toFixed(2).replace(/\.?0+$/, '')}%
+          </span>
         </button>
         <AnimatePresence>
           {showSlippage && (
@@ -424,20 +451,64 @@ export default function SwapCard() {
               transition={{ duration: 0.2 }}
               className="overflow-hidden"
             >
-              <div className="p-3 flex gap-2">
-                {[10, 50, 100, 300].map((bps) => (
-                  <button
-                    key={bps}
-                    onClick={() => settings.slippageBps !== bps && setShowSlippage(false)}
-                    className={`flex-1 py-2 rounded-lg text-xs font-medium transition-colors ${
-                      settings.slippageBps === bps
-                        ? 'bg-accent-cyan text-bg-primary'
-                        : 'bg-white/[0.03] text-text-secondary hover:bg-hover'
-                    }`}
+              <div className="p-3 bg-white/[0.01] rounded-xl border border-border/30 mt-1 space-y-2">
+                <div className="flex gap-2 items-center">
+                  {[10, 50, 100].map((bps) => {
+                    const isSelected = settings.slippageBps === bps;
+                    return (
+                      <button
+                        key={bps}
+                        onClick={() => handlePresetSlippage(bps)}
+                        className={`flex-1 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                          isSelected
+                            ? 'bg-accent-cyan text-bg-primary font-semibold'
+                            : 'bg-white/[0.03] text-text-secondary hover:bg-hover border border-border/50'
+                        }`}
+                      >
+                        {(bps / 100).toFixed(1)}%
+                      </button>
+                    );
+                  })}
+                  
+                  {/* Custom Input */}
+                  <div className={`flex-1 flex items-center bg-white/[0.03] border rounded-lg px-2 py-1.5 transition-colors ${
+                    ![10, 50, 100].includes(settings.slippageBps)
+                      ? 'border-accent-cyan' 
+                      : 'border-border/50 focus-within:border-accent-cyan/50'
+                  }`}>
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      placeholder="Custom"
+                      value={customSlippageInput}
+                      onChange={(e) => handleCustomSlippageChange(e.target.value)}
+                      className="w-full bg-transparent text-xs font-medium text-text-primary focus:outline-none text-right pr-0.5"
+                    />
+                    <span className="text-xs text-text-muted font-medium select-none">%</span>
+                  </div>
+                </div>
+
+                {/* Validation Warnings / Feedback */}
+                {settings.slippageBps < 5 && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-[11px] text-amber-500 flex items-center gap-1.5 px-1 pt-1"
                   >
-                    {(bps / 100).toFixed(1)}%
-                  </button>
-                ))}
+                    <AlertTriangle size={12} className="shrink-0" />
+                    <span>Slippage is low. Your transaction may fail due to price volatility.</span>
+                  </motion.div>
+                )}
+                {settings.slippageBps > 500 && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-[11px] text-amber-500 flex items-center gap-1.5 px-1 pt-1"
+                  >
+                    <AlertTriangle size={12} className="shrink-0" />
+                    <span>Slippage is high. Your transaction may be frontrun.</span>
+                  </motion.div>
+                )}
               </div>
             </motion.div>
           )}

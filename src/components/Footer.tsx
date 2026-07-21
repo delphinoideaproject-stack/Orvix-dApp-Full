@@ -52,7 +52,7 @@ export function Footer({ setCurrentPage }: { setCurrentPage: (p: Page) => void }
               Privacy Policy
             </button>
             <button onClick={() => setCurrentPage('CONTACT')} className="text-left text-[#8da3ba] hover:text-zinc-900 dark:hover:text-zinc-100 hover:underline text-sm cursor-pointer">
-              Contact
+              Contact Us
             </button>
           </div>
 

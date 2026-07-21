@@ -33,11 +33,13 @@ export function ArchivePage({
 
   return (
     <div className="w-full">
-      <div className="mb-10 pb-6 border-b border-zinc-200 dark:border-zinc-800">
-        <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-3 tracking-tight">Archive</h1>
-        <p className="text-zinc-600 dark:text-zinc-400 w-full whitespace-pre-line">
-          Tokens that have completed their time in New Alpha.{'\n'}Still active. Still tradeable.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-10 pb-6 border-b border-zinc-200 dark:border-zinc-800">
+        <div>
+          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-3 tracking-tight">Archive</h1>
+          <p className="text-zinc-600 dark:text-zinc-400 w-full whitespace-pre-line">
+            Tokens that have completed their time in New Alpha.{'\n'}Still active. Still tradeable.
+          </p>
+        </div>
       </div>
 
       <div className="divide-y divide-zinc-200 dark:divide-zinc-800 border-t border-b border-zinc-200 dark:border-zinc-800">
@@ -52,9 +54,13 @@ export function ArchivePage({
               setCurrentPage={setCurrentPage}
             />
           ))
-        ) : (
-          <div className="text-center py-20 text-zinc-500">
+        ) : searchQuery ? (
+          <div className="py-12 text-center text-sm text-zinc-500 dark:text-zinc-400 font-sans">
             No archived tokens found matching your search.
+          </div>
+        ) : (
+          <div className="py-12 text-center text-sm text-zinc-400 dark:text-zinc-500 font-medium font-sans">
+            No archived tokens yet
           </div>
         )}
       </div>
@@ -156,8 +162,8 @@ function ArchiveRowItem({
                   </div>
                 </div>
                 <div className="font-mono text-xs text-zinc-900 dark:text-zinc-100 break-all mb-2">{t.contract}</div>
-                <div className="flex gap-2">
-                  <CopyButton text={t.contract} label="Copy" className="text-xs py-1 px-2.5 rounded-lg bg-zinc-200/60 dark:bg-zinc-800" />
+                <div className="flex gap-2 items-center">
+                  <CopyButton text={t.contract} />
                   <a href={`${getExplorerUrl()}/address/${t.contract}`} target="_blank" rel="noreferrer" className="text-xs py-1 px-2.5 rounded-lg bg-zinc-200/60 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">BscScan</a>
                 </div>
               </div>
@@ -165,8 +171,8 @@ function ArchiveRowItem({
               <div>
                 <div className="text-xs font-semibold text-zinc-500 mb-1">Creator</div>
                 <div className="font-mono text-xs text-zinc-900 dark:text-zinc-100 break-all mb-2">{t.creator}</div>
-                <div className="flex gap-2">
-                  <CopyButton text={t.creator} label="Copy" className="text-xs py-1 px-2.5 rounded-lg bg-zinc-200/60 dark:bg-zinc-800" />
+                <div className="flex gap-2 items-center">
+                  <CopyButton text={t.creator} />
                   <a href={`${getExplorerUrl()}/address/${t.creator}`} target="_blank" rel="noreferrer" className="text-xs py-1 px-2.5 rounded-lg bg-zinc-200/60 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">BscScan</a>
                 </div>
               </div>
