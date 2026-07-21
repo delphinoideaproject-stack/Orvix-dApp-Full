@@ -75,12 +75,30 @@ export function useSwapExecution() {
       try {
         const signer = await getSigner(provider);
         const contract = new Contract(token.address, ERC20_ABI, signer);
+        const ownerAddress = await signer.getAddress();
 
-        // Check current allowance first
-        const currentAllowance = await contract.allowance(
-          await signer.getAddress(),
-          ADDRESSES.ORVIX_AGGREGATOR
-        );
+        // Check current allowance first. Some wallet-injected providers
+        // (e.g. certain MetaMask forks/clones) occasionally return an empty
+        // "0x" response for eth_call right after a network switch or while
+        // their internal RPC cache is catching up — ethers then throws
+        // "could not decode result data ... code=BAD_DATA" even though the
+        // contract and chain are both correct. This is transient, so we
+        // retry a few times with a short delay before giving up, rather
+        // than failing the whole approve flow on one flaky read.
+        let currentAllowance: bigint | null = null;
+        let lastAllowanceError: unknown = null;
+        for (let attempt = 0; attempt < 3; attempt++) {
+          try {
+            currentAllowance = await contract.allowance(ownerAddress, ADDRESSES.ORVIX_AGGREGATOR);
+            break;
+          } catch (e) {
+            lastAllowanceError = e;
+            if (attempt < 2) await new Promise((r) => setTimeout(r, 800));
+          }
+        }
+        if (currentAllowance === null) {
+          throw lastAllowanceError ?? new Error('Failed to read current allowance');
+        }
 
         const amountInWei = parseUnits(amountIn, token.decimals);
 
@@ -256,4 +274,3 @@ export function useSwapExecution() {
 
   return { status, txInfo, error, approve, swap, wrapBNB, unwrapWBNB, reset };
 }
-
